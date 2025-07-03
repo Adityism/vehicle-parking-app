@@ -1,9 +1,6 @@
 from flask import Flask
 from models import db
 from models.user import User
-from models.parking_lot import ParkingLot
-from models.parking_spot import ParkingSpot
-from models.reservation import Reservation
 import os
 
 def init_db():
@@ -27,9 +24,8 @@ def init_db():
             # Create default admin user
             admin = User(
                 email='admin@parking.com',
-                name='System Admin',
-                phone='1234567890',
-                is_admin=True
+                name='System Administrator',
+                role='admin'
             )
             admin.set_password('admin123')  # Set a default password
             db.session.add(admin)
