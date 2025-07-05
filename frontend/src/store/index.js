@@ -6,7 +6,8 @@ const API_URL = 'http://localhost:5000/api'
 export default createStore({
   state: {
     user: null,
-    token: localStorage.getItem('token') || null
+    token: localStorage.getItem('token') || null,
+    activeReservation: null
   },
   mutations: {
     setUser(state, user) {
@@ -22,9 +23,13 @@ export default createStore({
         delete axios.defaults.headers.common['Authorization']
       }
     },
+    setActiveReservation(state, reservation) {
+      state.activeReservation = reservation
+    },
     logout(state) {
       state.user = null
       state.token = null
+      state.activeReservation = null
       localStorage.removeItem('token')
       delete axios.defaults.headers.common['Authorization']
     }
@@ -62,11 +67,22 @@ export default createStore({
         commit('logout')
         throw error.response?.data?.message || 'Failed to get user info'
       }
+    },
+    async fetchActiveReservation({ commit }) {
+      try {
+        const res = await axios.get('/reservations/active')
+        commit('setActiveReservation', res.data)
+        return res.data
+      } catch {
+        commit('setActiveReservation', null)
+        return null
+      }
     }
   },
   getters: {
     isAdmin: state => state.user?.role === 'admin',
     isAuthenticated: state => !!state.user,
-    currentUser: state => state.user
+    currentUser: state => state.user,
+    activeReservation: state => state.activeReservation
   }
 })

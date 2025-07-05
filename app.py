@@ -4,6 +4,7 @@ from flask_cors import CORS
 from backend.models import db
 from backend.auth import auth_bp
 from backend.admin import admin_bp
+from backend.reservations import reservations_bp
 import os
 from datetime import timedelta
 
@@ -26,6 +27,7 @@ jwt = JWTManager(app)
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
+app.register_blueprint(reservations_bp, url_prefix='/api/reservations')
 
 @app.route('/')
 def index():

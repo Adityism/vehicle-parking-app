@@ -6,6 +6,8 @@ import LoginPage from '../views/LoginPage.vue'
 import RegisterPage from '../views/RegisterPage.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
+import FindParking from '../views/FindParking.vue'
+import ParkingHistory from '../views/ParkingHistory.vue'
 
 const routes = [
   {
@@ -32,6 +34,18 @@ const routes = [
     path: '/dashboard',
     name: 'UserDashboard',
     component: UserDashboard,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/find-parking',
+    name: 'FindParking',
+    component: FindParking,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/parking-history',
+    name: 'ParkingHistory',
+    component: ParkingHistory,
     meta: { requiresAuth: true }
   },
   {
