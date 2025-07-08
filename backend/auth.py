@@ -31,7 +31,6 @@ def login():
     if not user or not user.check_password(data['password']):
         return jsonify({'error': 'Invalid email or password'}), 401
     
-    # Create access token with role information
     access_token = create_access_token(
         identity=user.id,
         additional_claims={'role': user.role},
@@ -57,11 +56,9 @@ def register():
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing required fields'}), 400
     
-    # Check if user already exists
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already registered'}), 409
     
-    # Create new user (always as regular user)
     user = User(
         email=data['email'],
         name=data['name'],
@@ -72,7 +69,6 @@ def register():
     db.session.add(user)
     db.session.commit()
     
-    # Create access token for the new user
     access_token = create_access_token(
         identity=user.id,
         additional_claims={'role': 'user'},

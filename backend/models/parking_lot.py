@@ -10,7 +10,6 @@ class ParkingLot(db.Model):
     capacity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
     spots = db.relationship('ParkingSpot', backref='parking_lot', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):

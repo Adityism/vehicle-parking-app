@@ -11,20 +11,16 @@ from datetime import timedelta
 app = Flask(__name__)
 CORS(app)
 
-# Configure SQLite database
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "backend", "parking.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# JWT Configuration
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev-secret-key')  # Change in production
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev-secret-key')   
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 
-# Initialize extensions
 db.init_app(app)
 jwt = JWTManager(app)
 
-# Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
 app.register_blueprint(reservations_bp, url_prefix='/api/reservations')

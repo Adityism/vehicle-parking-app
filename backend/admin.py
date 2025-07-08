@@ -9,7 +9,6 @@ from functools import wraps
 
 admin_bp = Blueprint('admin', __name__)
 
-# Admin role check decorator (reuse from auth.py if possible)
 def admin_required(fn):
     @wraps(fn)
     @jwt_required()
@@ -21,7 +20,6 @@ def admin_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
-# --- Parking Lot CRUD ---
 @admin_bp.route('/lots', methods=['POST'])
 @admin_required
 def create_lot():
@@ -36,7 +34,6 @@ def create_lot():
     lot = ParkingLot(name=name, address=address, capacity=capacity)
     db.session.add(lot)
     db.session.commit()
-    # Auto-create spots
     for i in range(1, capacity+1):
         spot = ParkingSpot(
             spot_number=str(i),
@@ -82,21 +79,18 @@ def delete_lot(lot_id):
     db.session.commit()
     return jsonify({'message': 'Parking lot deleted'})
 
-# --- Parking Spot Details ---
 @admin_bp.route('/lots/<int:lot_id>/spots', methods=['GET'])
 @admin_required
 def list_spots(lot_id):
     spots = ParkingSpot.query.filter_by(parking_lot_id=lot_id).all()
     return jsonify([spot.to_dict() for spot in spots])
 
-# --- User List and Spot Usage ---
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def list_users():
     users = User.query.all()
     user_list = []
     for user in users:
-        # Find active reservation (if any)
         reservation = Reservation.query.filter_by(user_id=user.id, status='active').first()
         spot_id = reservation.parking_spot_id if reservation else None
         user_list.append({
@@ -107,3 +101,19 @@ def list_users():
             'spot_id': spot_id
         })
     return jsonify(user_list)
+
+@admin_bp.route('/reservations', methods=['GET'])
+@admin_required
+def all_reservations():
+    reservations = Reservation.query.order_by(Reservation.parking_timestamp.desc()).all()
+    result = []
+    for r in reservations:
+        user = User.query.get(r.user_id)
+        spot = ParkingSpot.query.get(r.parking_spot_id)
+        lot = ParkingLot.query.get(spot.parking_lot_id) if spot else None
+        d = r.to_dict()
+        d['user_email'] = user.email if user else None
+        d['spot_number'] = spot.spot_number if spot else None
+        d['lot_name'] = lot.name if lot else None
+        result.append(d)
+    return jsonify(result)

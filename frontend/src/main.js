@@ -6,7 +6,6 @@ import router from './router'
 import store from './store'
 import axios from 'axios'
 
-// Configure axios defaults
 axios.defaults.baseURL = 'http://localhost:5000/api'
 if (localStorage.getItem('token')) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`

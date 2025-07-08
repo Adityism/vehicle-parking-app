@@ -30,11 +30,9 @@ def book_spot():
     if not lot_id or not vehicle_number:
         return jsonify({'error': 'Missing lot_id or vehicle_number'}), 400
     user_id = get_jwt_identity()
-    # Check if user already has an active reservation
     active = Reservation.query.filter_by(user_id=user_id, status='active').first()
     if active:
         return jsonify({'error': 'You already have an active reservation'}), 400
-    # Find first available spot
     spot = ParkingSpot.query.filter_by(parking_lot_id=lot_id, is_occupied=False).first()
     if not spot:
         return jsonify({'error': 'No available spots in this lot'}), 400
@@ -43,7 +41,7 @@ def book_spot():
         user_id=user_id,
         parking_spot_id=spot.id,
         vehicle_number=vehicle_number,
-        start_time=datetime.utcnow(),
+        parking_timestamp=datetime.utcnow(),
         status='active'
     )
     db.session.add(reservation)
@@ -61,10 +59,11 @@ def release_spot():
     reservation = Reservation.query.filter_by(id=reservation_id, user_id=user_id, status='active').first()
     if not reservation:
         return jsonify({'error': 'Active reservation not found'}), 404
-    reservation.end_time = datetime.utcnow()
+    reservation.leaving_timestamp = datetime.utcnow()
     reservation.status = 'completed'
-    reservation.calculate_cost()
     spot = ParkingSpot.query.get(reservation.parking_spot_id)
+    lot = ParkingLot.query.get(spot.parking_lot_id)
+    reservation.calculate_cost(spot.rate_per_hour)
     spot.is_occupied = False
     db.session.commit()
     return jsonify(reservation.to_dict())
@@ -82,7 +81,7 @@ def get_active_reservation():
 @user_required
 def get_reservation_history():
     user_id = get_jwt_identity()
-    reservations = Reservation.query.filter_by(user_id=user_id).filter(Reservation.status != 'active').order_by(Reservation.start_time.desc()).all()
+    reservations = Reservation.query.filter_by(user_id=user_id).filter(Reservation.leaving_timestamp != None).order_by(Reservation.parking_timestamp.desc()).all()
     result = []
     for r in reservations:
         spot = ParkingSpot.query.get(r.parking_spot_id)

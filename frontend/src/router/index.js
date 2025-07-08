@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import store from '../store'
 
-// Views
 import LoginPage from '../views/LoginPage.vue'
 import RegisterPage from '../views/RegisterPage.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
 import FindParking from '../views/FindParking.vue'
 import ParkingHistory from '../views/ParkingHistory.vue'
+import AdminReservationHistory from '../views/AdminReservationHistory.vue'
 
 const routes = [
   {
@@ -41,6 +41,12 @@ const routes = [
     name: 'FindParking',
     component: FindParking,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/reservations',
+    name: 'AdminReservationHistory',
+    component: AdminReservationHistory,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/parking-history',
@@ -78,7 +84,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // If trying to access login/register while already authenticated
   if ((to.name === 'Login' || to.name === 'Register' || to.name === 'AdminLogin') && store.getters.isAuthenticated) {
     const isAdmin = store.getters.isAdmin
     next(isAdmin ? '/admin/dashboard' : '/dashboard')
