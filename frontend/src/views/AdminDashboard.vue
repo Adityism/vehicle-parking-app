@@ -1,4 +1,4 @@
-&lt;template>
+<template>
   <div class="admin-dashboard">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
       <div class="container">
@@ -9,7 +9,14 @@
     
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-3">
+          <div class="list-group mb-4">
+            <router-link to="/admin/dashboard" class="list-group-item list-group-item-action">Dashboard</router-link>
+            <router-link to="/admin/reservations" class="list-group-item list-group-item-action">Reservations</router-link>
+            <router-link to="/admin/analytics" class="list-group-item list-group-item-action">📊 Analytics</router-link>
+          </div>
+        </div>
+        <div class="col-md-9">
           <div class="card">
             <div class="card-body text-center">
               <h2>Welcome, {{ user.name }}!</h2>

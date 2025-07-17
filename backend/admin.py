@@ -117,3 +117,22 @@ def all_reservations():
         d['lot_name'] = lot.name if lot else None
         result.append(d)
     return jsonify(result)
+
+@admin_bp.route('/stats', methods=['GET'])
+@admin_required
+def get_stats():
+    total_reservations = Reservation.query.count()
+    total_revenue = db.session.query(db.func.sum(Reservation.cost)).scalar() or 0.0
+    lot_counts = db.session.query(ParkingLot.name, db.func.count(Reservation.id))\
+        .join(ParkingSpot, ParkingSpot.parking_lot_id == ParkingLot.id)\
+        .join(Reservation, Reservation.parking_spot_id == ParkingSpot.id)\
+        .group_by(ParkingLot.name).all()
+    spot_counts = db.session.query(ParkingSpot.spot_number, db.func.count(Reservation.id))\
+        .join(Reservation, Reservation.parking_spot_id == ParkingSpot.id)\
+        .group_by(ParkingSpot.spot_number).all()
+    return jsonify({
+        'total_reservations': total_reservations,
+        'total_revenue': round(total_revenue, 2),
+        'lot_counts': [{'lot': l, 'count': c} for l, c in lot_counts],
+        'spot_counts': [{'spot': s, 'count': c} for s, c in spot_counts]
+    })

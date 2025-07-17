@@ -8,6 +8,7 @@ import AdminDashboard from '../views/AdminDashboard.vue'
 import FindParking from '../views/FindParking.vue'
 import ParkingHistory from '../views/ParkingHistory.vue'
 import AdminReservationHistory from '../views/AdminReservationHistory.vue'
+import AdminAnalytics from '../views/AdminAnalytics.vue'
 
 const routes = [
   {
@@ -58,6 +59,12 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboard,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/analytics',
+    name: 'AdminAnalytics',
+    component: AdminAnalytics,
     meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
