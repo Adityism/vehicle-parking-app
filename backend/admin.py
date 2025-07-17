@@ -6,6 +6,7 @@ from models.parking_spot import ParkingSpot
 from models.user import User
 from models.reservation import Reservation
 from functools import wraps
+from redis_client import redis_client
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -43,6 +44,7 @@ def create_lot():
         )
         db.session.add(spot)
     db.session.commit()
+    redis_client.delete('available_lots')
     return jsonify(lot.to_dict()), 201
 
 @admin_bp.route('/lots', methods=['GET'])
@@ -69,6 +71,7 @@ def update_lot(lot_id):
     lot.address = data.get('address', lot.address)
     lot.capacity = data.get('capacity', lot.capacity)
     db.session.commit()
+    redis_client.delete('available_lots')
     return jsonify(lot.to_dict())
 
 @admin_bp.route('/lots/<int:lot_id>', methods=['DELETE'])
@@ -77,6 +80,7 @@ def delete_lot(lot_id):
     lot = ParkingLot.query.get_or_404(lot_id)
     db.session.delete(lot)
     db.session.commit()
+    redis_client.delete('available_lots')
     return jsonify({'message': 'Parking lot deleted'})
 
 @admin_bp.route('/lots/<int:lot_id>/spots', methods=['GET'])
@@ -136,3 +140,23 @@ def get_stats():
         'lot_counts': [{'lot': l, 'count': c} for l, c in lot_counts],
         'spot_counts': [{'spot': s, 'count': c} for s, c in spot_counts]
     })
+
+@admin_bp.route('/lots/available', methods=['GET'])
+def available_lots():
+    cached = redis_client.get('available_lots')
+    if cached:
+        return jsonify(eval(cached))
+    lots = ParkingLot.query.all()
+    result = [lot.to_dict() for lot in lots if lot.available_spots > 0]
+    redis_client.setex('available_lots', 60, str(result))
+    return jsonify(result)
+
+@admin_bp.route('/spots/available', methods=['GET'])
+def available_spots():
+    cached = redis_client.get('available_spots')
+    if cached:
+        return jsonify(eval(cached))
+    spots = ParkingSpot.query.filter_by(is_occupied=False).all()
+    result = [spot.to_dict() for spot in spots]
+    redis_client.setex('available_spots', 60, str(result))
+    return jsonify(result)

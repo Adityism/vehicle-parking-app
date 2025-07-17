@@ -7,6 +7,7 @@ from models.user import User
 from models.reservation import Reservation
 from datetime import datetime
 from functools import wraps
+from redis_client import redis_client
 
 reservations_bp = Blueprint('reservations', __name__)
 
@@ -46,6 +47,8 @@ def book_spot():
     )
     db.session.add(reservation)
     db.session.commit()
+    redis_client.delete('available_spots')
+    redis_client.delete('available_lots')
     return jsonify(reservation.to_dict()), 201
 
 @reservations_bp.route('/release', methods=['POST'])
@@ -66,6 +69,8 @@ def release_spot():
     reservation.calculate_cost(spot.rate_per_hour)
     spot.is_occupied = False
     db.session.commit()
+    redis_client.delete('available_spots')
+    redis_client.delete('available_lots')
     return jsonify(reservation.to_dict())
 
 @reservations_bp.route('/active', methods=['GET'])
