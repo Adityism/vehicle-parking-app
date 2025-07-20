@@ -7,6 +7,7 @@ from models.user import User
 from models.reservation import Reservation
 from functools import wraps
 from redis_client import redis_client
+from backend.celery_tasks import export_reservations_csv
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -160,3 +161,9 @@ def available_spots():
     result = [spot.to_dict() for spot in spots]
     redis_client.setex('available_spots', 60, str(result))
     return jsonify(result)
+
+@admin_bp.route('/export/csv', methods=['POST'])
+@admin_required
+def export_csv():
+    export_reservations_csv.delay()
+    return jsonify({"status": "export started"})

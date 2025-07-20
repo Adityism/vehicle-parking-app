@@ -3,7 +3,6 @@ from flask import jsonify
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 
 def admin_required():
-    """Decorator to require admin role for a route"""
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):

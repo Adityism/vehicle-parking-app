@@ -3,7 +3,6 @@ from . import db
 
 class Reservation(db.Model):
     __tablename__ = 'reservations'
-    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     parking_spot_id = db.Column(db.Integer, db.ForeignKey('parking_spots.id'), nullable=False)
@@ -12,16 +11,14 @@ class Reservation(db.Model):
     leaving_timestamp = db.Column(db.DateTime, nullable=True)
     duration_minutes = db.Column(db.Integer, default=0)
     cost = db.Column(db.Float, default=0.0)
-    status = db.Column(db.String(20), default='active') 
+    status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
     def calculate_cost(self, rate_per_hour):
         if self.leaving_timestamp and self.parking_timestamp:
-            duration = (self.leaving_timestamp - self.parking_timestamp).total_seconds() / 60  
+            duration = (self.leaving_timestamp - self.parking_timestamp).total_seconds() / 60
             self.duration_minutes = int(duration)
             hours = duration / 60
             self.cost = round(hours * rate_per_hour, 2)
-
     def to_dict(self):
         return {
             'id': self.id,
