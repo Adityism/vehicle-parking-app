@@ -51,7 +51,16 @@ def create_lot():
 @admin_bp.route('/lots', methods=['GET'])
 @admin_required
 def list_lots():
-    lots = ParkingLot.query.all()
+    q = request.args.get('q', '').strip()
+    lots_query = ParkingLot.query
+    if q:
+        like_q = f"%{q}%"
+        lots_query = lots_query.filter(
+            (ParkingLot.name.ilike(like_q)) |
+            (ParkingLot.address.ilike(like_q)) |
+            (ParkingLot.address.ilike(like_q))
+        )
+    lots = lots_query.all()
     return jsonify([lot.to_dict() for lot in lots])
 
 @admin_bp.route('/lots/<int:lot_id>', methods=['GET'])
@@ -87,13 +96,27 @@ def delete_lot(lot_id):
 @admin_bp.route('/lots/<int:lot_id>/spots', methods=['GET'])
 @admin_required
 def list_spots(lot_id):
-    spots = ParkingSpot.query.filter_by(parking_lot_id=lot_id).all()
+    status = request.args.get('status', '').strip().lower()
+    spots_query = ParkingSpot.query.filter_by(parking_lot_id=lot_id)
+    if status == 'available':
+        spots_query = spots_query.filter_by(is_occupied=False)
+    elif status == 'occupied':
+        spots_query = spots_query.filter_by(is_occupied=True)
+    spots = spots_query.all()
     return jsonify([spot.to_dict() for spot in spots])
 
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def list_users():
-    users = User.query.all()
+    q = request.args.get('q', '').strip()
+    users_query = User.query
+    if q:
+        like_q = f"%{q}%"
+        users_query = users_query.filter(
+            (User.name.ilike(like_q)) |
+            (User.email.ilike(like_q))
+        )
+    users = users_query.all()
     user_list = []
     for user in users:
         reservation = Reservation.query.filter_by(user_id=user.id, status='active').first()
