@@ -11,6 +11,12 @@ if (localStorage.getItem('token')) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 }
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+  })
+}
+
 const app = createApp(App)
 app.use(router)
 app.use(store)
