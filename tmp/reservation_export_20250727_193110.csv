@@ -1,0 +1,2 @@
+id,user_id,parking_spot_id,vehicle_number,parking_timestamp,leaving_timestamp,duration_minutes,cost,status,created_at
+4,3,1,10,2025-07-27T13:15:53.882977,2025-07-27T13:15:57.119651,0,0.01,completed,2025-07-27T13:15:53.884847

@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db
-from models.parking_lot import ParkingLot
-from models.parking_spot import ParkingSpot
-from models.user import User
-from models.reservation import Reservation
+from backend.models import db
+from backend.models.parking_lot import ParkingLot
+from backend.models.parking_spot import ParkingSpot
+from backend.models.user import User
+from backend.models.reservation import Reservation
 from functools import wraps
-from redis_client import redis_client
-from backend.celery_tasks import export_reservations_csv
+from backend.redis_client import redis_client
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -28,12 +28,13 @@ def create_lot():
     data = request.get_json()
     name = data.get('name')
     address = data.get('address')
+    pincode = data.get('pincode')
     capacity = data.get('capacity')
     vehicle_type = data.get('vehicle_type', 'car')
     rate_per_hour = data.get('rate_per_hour', 10.0)
-    if not name or not address or not capacity:
+    if not name or not address or not pincode or not capacity:
         return jsonify({'error': 'Missing required fields'}), 400
-    lot = ParkingLot(name=name, address=address, capacity=capacity)
+    lot = ParkingLot(name=name, address=address, pincode=pincode, capacity=capacity)
     db.session.add(lot)
     db.session.commit()
     for i in range(1, capacity+1):
@@ -88,9 +89,16 @@ def update_lot(lot_id):
 @admin_required
 def delete_lot(lot_id):
     lot = ParkingLot.query.get_or_404(lot_id)
+
+    # Check if there are any reservations associated with spots in this lot
+    has_reservations = db.session.query(Reservation).join(ParkingSpot).filter(ParkingSpot.parking_lot_id == lot_id, Reservation.status == 'active').first()
+    if has_reservations:
+        return jsonify({'error': 'Cannot delete lot with existing reservations.'}), 400
+
     db.session.delete(lot)
     db.session.commit()
     redis_client.delete('available_lots')
+    redis_client.delete('available_spots') # Invalidate available spots cache
     return jsonify({'message': 'Parking lot deleted'})
 
 @admin_bp.route('/lots/<int:lot_id>/spots', methods=['GET'])
@@ -151,29 +159,68 @@ def all_reservations():
 def get_stats():
     total_reservations = Reservation.query.count()
     total_revenue = db.session.query(db.func.sum(Reservation.cost)).scalar() or 0.0
-    lot_counts = db.session.query(ParkingLot.name, db.func.count(Reservation.id))\
-        .join(ParkingSpot, ParkingSpot.parking_lot_id == ParkingLot.id)\
-        .join(Reservation, Reservation.parking_spot_id == ParkingSpot.id)\
-        .group_by(ParkingLot.name).all()
-    spot_counts = db.session.query(ParkingSpot.spot_number, db.func.count(Reservation.id))\
-        .join(Reservation, Reservation.parking_spot_id == ParkingSpot.id)\
-        .group_by(ParkingSpot.spot_number).all()
+    total_lots = ParkingLot.query.count()
+    total_users = User.query.count()
+    total_spots = ParkingSpot.query.count()
+    occupied_spots = ParkingSpot.query.filter_by(is_occupied=True).count()
+
+    lot_spot_distribution = (
+        db.session.query(
+            ParkingLot.name,
+            db.func.count(ParkingSpot.id)
+        )
+        .join(ParkingSpot, ParkingLot.id == ParkingSpot.parking_lot_id)
+        .group_by(ParkingLot.name)
+        .all()
+    )
+
+    spot_occupancy = (
+        db.session.query(
+            ParkingSpot.spot_number,
+            db.func.count(Reservation.id)
+        )
+        .outerjoin(Reservation, ParkingSpot.id == Reservation.parking_spot_id)
+        .group_by(ParkingSpot.spot_number)
+        .all()
+    )
+
+    # Lot-wise spot distribution
+    lot_spot_distribution = (
+        db.session.query(
+            ParkingLot.name,
+            db.func.count(ParkingSpot.id)
+        )
+        .join(ParkingSpot, ParkingLot.id == ParkingSpot.parking_lot_id)
+        .group_by(ParkingLot.name)
+        .all()
+    )
+
+    # Reservations trend for the last 7 days
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    reservations_last_7_days = (
+        db.session.query(
+            db.func.strftime('%Y-%m-%d', Reservation.parking_timestamp),
+            db.func.count(Reservation.id)
+        )
+        .filter(Reservation.parking_timestamp >= seven_days_ago)
+        .group_by(db.func.strftime('%Y-%m-%d', Reservation.parking_timestamp))
+        .order_by(db.func.strftime('%Y-%m-%d', Reservation.parking_timestamp))
+        .all()
+    )
+
     return jsonify({
         'total_reservations': total_reservations,
         'total_revenue': round(total_revenue, 2),
-        'lot_counts': [{'lot': l, 'count': c} for l, c in lot_counts],
-        'spot_counts': [{'spot': s, 'count': c} for s, c in spot_counts]
+        'total_lots': total_lots,
+        'total_users': total_users,
+        'total_spots': total_spots,
+        'occupied_spots': occupied_spots,
+        'lot_spot_distribution': [{'lot': l, 'count': c} for l, c in lot_spot_distribution],
+        'spot_occupancy': [{'spot': s, 'count': c} for s, c in spot_occupancy],
+        'reservations_last_7_days': [{'date': d, 'count': c} for d, c in reservations_last_7_days]
     })
 
-@admin_bp.route('/lots/available', methods=['GET'])
-def available_lots():
-    cached = redis_client.get('available_lots')
-    if cached:
-        return jsonify(eval(cached))
-    lots = ParkingLot.query.all()
-    result = [lot.to_dict() for lot in lots if lot.available_spots > 0]
-    redis_client.setex('available_lots', 60, str(result))
-    return jsonify(result)
+
 
 @admin_bp.route('/spots/available', methods=['GET'])
 def available_spots():
@@ -188,5 +235,6 @@ def available_spots():
 @admin_bp.route('/export/csv', methods=['POST'])
 @admin_required
 def export_csv():
+    from backend.celery_tasks import export_reservations_csv
     export_reservations_csv.delay()
     return jsonify({"status": "export started"})

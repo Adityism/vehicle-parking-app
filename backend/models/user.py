@@ -23,7 +23,6 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'name': self.name,
-            'phone': self.phone,
-            'is_admin': self.is_admin,
+            'role': self.role,
             'created_at': self.created_at.isoformat()
         }

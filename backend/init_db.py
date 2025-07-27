@@ -1,6 +1,9 @@
 from flask import Flask
 from models import db
 from models.user import User
+from models.reservation import Reservation
+from models.parking_spot import ParkingSpot
+from models.parking_lot import ParkingLot
 import os
 
 def init_db():

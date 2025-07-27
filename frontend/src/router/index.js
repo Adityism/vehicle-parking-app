@@ -5,10 +5,14 @@ import LoginPage from '../views/LoginPage.vue'
 import RegisterPage from '../views/RegisterPage.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
-import FindParking from '../views/FindParking.vue'
+
 import ParkingHistory from '../views/ParkingHistory.vue'
 import AdminReservationHistory from '../views/AdminReservationHistory.vue'
 import AdminAnalytics from '../views/AdminAnalytics.vue'
+import LotManagement from '../components/LotManagement.vue'
+import UserManagement from '../components/UserManagement.vue'
+import SpotManagement from '../components/SpotManagement.vue'
+
 
 const routes = [
   {
@@ -37,12 +41,7 @@ const routes = [
     component: UserDashboard,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/find-parking',
-    name: 'FindParking',
-    component: FindParking,
-    meta: { requiresAuth: true }
-  },
+  
   {
     path: '/admin/reservations',
     name: 'AdminReservationHistory',
@@ -66,7 +65,26 @@ const routes = [
     name: 'AdminAnalytics',
     component: AdminAnalytics,
     meta: { requiresAuth: true, requiresAdmin: true }
-  }
+  },
+  {
+    path: '/admin/lot-management',
+    name: 'LotManagement',
+    component: LotManagement,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/user-management',
+    name: 'UserManagement',
+    component: UserManagement,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/spot-management',
+    name: 'SpotManagement',
+    component: SpotManagement,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  
 ]
 
 const router = createRouter({

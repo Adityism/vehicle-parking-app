@@ -6,6 +6,7 @@ class ParkingLot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.String(200), nullable=False)
+    pincode = db.Column(db.String(20), nullable=False)
     capacity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     spots = db.relationship('ParkingSpot', backref='parking_lot', lazy=True, cascade='all, delete-orphan')
@@ -14,7 +15,9 @@ class ParkingLot(db.Model):
             'id': self.id,
             'name': self.name,
             'address': self.address,
+            'pincode': self.pincode,
             'capacity': self.capacity,
             'created_at': self.created_at.isoformat(),
-            'available_spots': sum(1 for spot in self.spots if not spot.is_occupied)
+            'available_spots': sum(1 for spot in self.spots if not spot.is_occupied),
+            'rate_per_hour': self.spots[0].rate_per_hour if self.spots else 0.0
         }

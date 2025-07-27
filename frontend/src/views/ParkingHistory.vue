@@ -1,5 +1,6 @@
 <template>
-  <div class="container mt-4">
+  <div class="parking-history-page">
+    <div class="container mt-4">
     <h2>Parking History</h2>
     <div v-if="loading" class="text-center my-4">
       <span>Loading history...</span>
@@ -27,7 +28,8 @@
       </table>
       <div v-if="history.length === 0" class="alert alert-info">No past reservations found.</div>
     </div>
-    <router-link to="/dashboard" class="btn btn-link mt-3">Back to Dashboard</router-link>
+      <router-link to="/dashboard" class="btn btn-link mt-3">Back to Dashboard</router-link>
+    </div>
   </div>
 </template>
 
@@ -68,3 +70,19 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.parking-history-page {
+  /* Override global app styles */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+}
+</style>

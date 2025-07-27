@@ -1,4 +1,4 @@
-&lt;template>
+<template>
   <router-view></router-view>
 </template>
 
@@ -13,7 +13,8 @@ export default {
     const store = useStore()
 
     onMounted(async () => {
-      if (store.state.token) {
+      // Only call getCurrentUser if we have a token but no user data
+      if (store.state.token && !store.state.user) {
         try {
           await store.dispatch('getCurrentUser')
         } catch (error) {
@@ -30,5 +31,4 @@ body {
   margin: 0;
   background-color: #f8f9fa;
 }
-</style>
 </style>

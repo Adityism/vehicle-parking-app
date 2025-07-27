@@ -1,8 +1,6 @@
 import { createStore } from 'vuex'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:5000/api'
-
 export default createStore({
   state: {
     user: null,
@@ -17,10 +15,11 @@ export default createStore({
       state.token = token
       if (token) {
         localStorage.setItem('token', token)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        // The axios interceptor will handle setting the header
+        console.log('Token set in store:', token)
       } else {
         localStorage.removeItem('token')
-        delete axios.defaults.headers.common['Authorization']
+        console.log('Token removed from store')
       }
     },
     setActiveReservation(state, reservation) {
@@ -31,24 +30,28 @@ export default createStore({
       state.token = null
       state.activeReservation = null
       localStorage.removeItem('token')
-      delete axios.defaults.headers.common['Authorization']
+      console.log('Logged out, token removed')
     }
   },
   actions: {
     async login({ commit }, credentials) {
       try {
-        const response = await axios.post(`${API_URL}/auth/login`, credentials)
+        const response = await axios.post('/auth/login', credentials)
         const { user, access_token } = response.data
+        console.log('Login successful:', { user, access_token })
+        console.log('Setting token in store...')
         commit('setUser', user)
         commit('setToken', access_token)
+        console.log('Current axios headers after login:', axios.defaults.headers.common)
         return user
       } catch (error) {
+        console.error('Login failed:', error)
         throw error.response?.data?.message || 'Login failed'
       }
     },
     async register({ commit }, userData) {
       try {
-        const response = await axios.post(`${API_URL}/auth/register`, userData)
+        const response = await axios.post('/auth/register', userData)
         const { user, access_token } = response.data
         commit('setUser', user)
         commit('setToken', access_token)
@@ -58,12 +61,21 @@ export default createStore({
       }
     },
     async getCurrentUser({ commit, state }) {
-      if (!state.token) return null
+      if (!state.token) {
+        console.log('No token available for getCurrentUser')
+        return null
+      }
       try {
-        const response = await axios.get(`${API_URL}/auth/me`)
+        console.log('Calling getCurrentUser with token:', state.token)
+        console.log('Current axios headers:', axios.defaults.headers.common)
+        const response = await axios.get('/auth/me')
+        console.log('getCurrentUser response:', response.data)
         commit('setUser', response.data)
         return response.data
       } catch (error) {
+        console.error('getCurrentUser failed:', error.response?.data || error)
+        console.error('Response status:', error.response?.status)
+        console.error('Response headers:', error.response?.headers)
         commit('logout')
         throw error.response?.data?.message || 'Failed to get user info'
       }

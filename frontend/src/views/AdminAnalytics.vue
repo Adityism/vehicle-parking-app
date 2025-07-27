@@ -1,38 +1,40 @@
 <template>
-  <div class="container mt-4">
-    <h2>Parking Analytics</h2>
-    <div v-if="loading" class="text-center my-4">
-      <span>Loading analytics...</span>
-    </div>
-    <div v-else>
-      <div class="row mb-4">
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5>Total Reservations</h5>
-              <h3>{{ stats.total_reservations }}</h3>
+  <div class="admin-analytics-page">
+    <div class="container mt-4">
+      <h2>Parking Analytics</h2>
+      <div v-if="loading" class="text-center my-4">
+        <span>Loading analytics...</span>
+      </div>
+      <div v-else>
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <h5>Total Reservations</h5>
+                <h3>{{ stats.total_reservations }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <h5>Total Revenue</h5>
+                <h3>₹{{ stats.total_revenue }}</h3>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <h5>Total Revenue</h5>
-              <h3>₹{{ stats.total_revenue }}</h3>
-            </div>
+        <div class="row">
+          <div class="col-md-6">
+            <canvas id="revenueChart"></canvas>
+          </div>
+          <div class="col-md-6">
+            <canvas id="lotChart"></canvas>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-6">
-          <canvas id="revenueChart"></canvas>
-        </div>
-        <div class="col-md-6">
-          <canvas id="lotChart"></canvas>
-        </div>
-      </div>
+      <router-link to="/admin/dashboard" class="btn btn-link mt-3">Back to Admin Dashboard</router-link>
     </div>
-    <router-link to="/admin/dashboard" class="btn btn-link mt-3">Back to Admin Dashboard</router-link>
   </div>
 </template>
 
@@ -93,3 +95,19 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.admin-analytics-page {
+  /* Override global app styles */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+}
+</style>

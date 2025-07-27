@@ -1,5 +1,6 @@
 <template>
-  <div class="container mt-4">
+  <div class="admin-reservation-history-page">
+    <div class="container mt-4">
     <h2>Admin Reservation History</h2>
     <div v-if="loading" class="text-center my-4">
       <span>Loading all reservations...</span>
@@ -33,7 +34,8 @@
       </table>
       <div v-if="reservations.length === 0" class="alert alert-info">No reservations found.</div>
     </div>
-    <router-link to="/admin/dashboard" class="btn btn-link mt-3">Back to Admin Dashboard</router-link>
+      <router-link to="/admin/dashboard" class="btn btn-link mt-3">Back to Admin Dashboard</router-link>
+    </div>
   </div>
 </template>
 
@@ -74,3 +76,19 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.admin-reservation-history-page {
+  /* Override global app styles */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+}
+</style>
