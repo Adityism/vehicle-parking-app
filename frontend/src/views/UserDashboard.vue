@@ -62,7 +62,7 @@
                         <p class="card-text">Address: {{ lot.address }}</p>
                         <p class="card-text">Price: ₹{{ lot.rate_per_hour }}/hr</p>
                         <p class="card-text">Available Spots: {{ lot.available_spots }}</p>
-                        <input v-model="vehicleNumber" class="form-control mb-2" placeholder="Enter Vehicle Number" />
+                        <input v-model="vehicleNumbers[lot.id]" class="form-control mb-2" placeholder="Enter Vehicle Number" />
                         <button class="btn btn-success" :disabled="booking || lot.available_spots === 0" @click="bookSpot(lot)">Book Spot</button>
                       </div>
                     </div>
@@ -136,7 +136,25 @@
               <h3>Profile Settings</h3>
               <p><strong>Name:</strong> {{ user.name }}</p>
               <p><strong>Email:</strong> {{ user.email }}</p>
-              <!-- Add password change form here -->
+              <!-- Change Password Form -->
+              <form @submit.prevent="handleChangePassword" class="mt-4" style="max-width:400px;">
+                <h5>Change Password</h5>
+                <div class="mb-3">
+                  <label for="currentPassword" class="form-label">Current Password</label>
+                  <input type="password" v-model="currentPassword" class="form-control" id="currentPassword" required />
+                </div>
+                <div class="mb-3">
+                  <label for="newPassword" class="form-label">New Password</label>
+                  <input type="password" v-model="newPassword" class="form-control" id="newPassword" required />
+                </div>
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                  <input type="password" v-model="confirmPassword" class="form-control" id="confirmPassword" required />
+                </div>
+                <div v-if="passwordError" class="text-danger mb-2">{{ passwordError }}</div>
+                <div v-if="passwordSuccess" class="text-success mb-2">{{ passwordSuccess }}</div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+              </form>
             </div>
           </div>
         </div>
@@ -163,12 +181,17 @@ export default {
     const lots = ref([])
     const loadingLots = ref(true)
     const booking = ref(false)
-    const vehicleNumber = ref('')
+    const vehicleNumbers = ref({})
     const parkingHistory = ref([])
     const totalSpentChart = ref(null)
     const totalHoursChart = ref(null)
     const bookingsPerMonthChart = ref(null)
     const mostVisitedLotsChart = ref(null)
+    const currentPassword = ref('')
+    const newPassword = ref('')
+    const confirmPassword = ref('')
+    const passwordError = ref('')
+    const passwordSuccess = ref('')
 
     const fetchActiveReservation = async () => {
       try {
@@ -209,15 +232,16 @@ export default {
     }
 
     const bookSpot = async (lot) => {
-      if (!vehicleNumber.value) {
+      const number = vehicleNumbers.value[lot.id]
+      if (!number) {
         alert('Please enter your vehicle number.')
         return
       }
       booking.value = true
       try {
-        await api.post('/reservations/book', { lot_id: lot.id, vehicle_number: vehicleNumber.value })
+        await api.post('/reservations/book', { lot_id: lot.id, vehicle_number: number })
         alert('Spot booked!')
-        vehicleNumber.value = ''
+        vehicleNumbers.value[lot.id] = ''
         await fetchActiveReservation()
         await fetchLots()
       } catch (e) {
@@ -368,6 +392,35 @@ export default {
       return new Date(dt).toLocaleString()
     }
 
+    const handleChangePassword = async () => {
+      passwordError.value = ''
+      passwordSuccess.value = ''
+      if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
+        passwordError.value = 'All fields are required.'
+        return
+      }
+      if (newPassword.value !== confirmPassword.value) {
+        passwordError.value = 'New passwords do not match.'
+        return
+      }
+      if (newPassword.value.length < 6) {
+        passwordError.value = 'New password must be at least 6 characters.'
+        return
+      }
+      try {
+        await api.post('/auth/change-password', {
+          current_password: currentPassword.value,
+          new_password: newPassword.value
+        })
+        passwordSuccess.value = 'Password changed successfully.'
+        currentPassword.value = ''
+        newPassword.value = ''
+        confirmPassword.value = ''
+      } catch (e) {
+        passwordError.value = e.response?.data?.error || 'Failed to change password.'
+      }
+    }
+
     onMounted(() => {
       fetchActiveReservation()
       fetchLots()
@@ -382,13 +435,19 @@ export default {
       lots,
       loadingLots,
       booking,
-      vehicleNumber,
+      vehicleNumbers,
       parkingHistory,
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      passwordError,
+      passwordSuccess,
       handleLogout,
       releaseSpot,
       bookSpot,
       exportHistory,
-      formatDate
+      formatDate,
+      handleChangePassword
     }
   }
 }

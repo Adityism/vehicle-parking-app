@@ -1,0 +1,52 @@
+ 
+ -------------- celery@Adityas-MacBook-Pro.local v5.3.1 (emerald-rush)
+--- ***** ----- 
+-- ******* ---- macOS-15.5-arm64-arm-64bit 2025-07-31 02:22:53
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         vehicle-parking-app:0x102485670
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 8 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . backend.celery_tasks.export_reservations_csv
+  . backend.celery_tasks.send_daily_reminders
+  . backend.celery_tasks.send_monthly_report
+
+[2025-07-31 02:22:53,768: WARNING/MainProcess] /Users/adityism/VS Code/23f1002424-MAD 2/vehicle-parking-app/.venv/lib/python3.9/site-packages/celery/worker/consumer/consumer.py:498: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-07-31 02:22:53,773: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-07-31 02:22:53,773: WARNING/MainProcess] /Users/adityism/VS Code/23f1002424-MAD 2/vehicle-parking-app/.venv/lib/python3.9/site-packages/celery/worker/consumer/consumer.py:498: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-07-31 02:22:53,774: INFO/MainProcess] mingle: searching for neighbors
+[2025-07-31 02:22:54,789: WARNING/MainProcess] /Users/adityism/VS Code/23f1002424-MAD 2/vehicle-parking-app/.venv/lib/python3.9/site-packages/celery/app/control.py:56: DuplicateNodenameWarning: Received multiple replies from node name: celery@Adityas-MacBook-Pro.local.
+Please make sure you give each node a unique nodename using
+the celery worker `-n` option.
+  warnings.warn(DuplicateNodenameWarning(
+
+[2025-07-31 02:22:54,789: INFO/MainProcess] mingle: all alone
+[2025-07-31 02:22:54,799: INFO/MainProcess] celery@Adityas-MacBook-Pro.local ready.
+
+SIGHUP not supported: Restarting with SIGHUP is unstable on this platform!
+[2025-07-31 02:24:55,944: ERROR/MainProcess] Process 'ForkPoolWorker-8' pid:53251 exited with 'exitcode 70'
+[2025-07-31 02:24:55,960: ERROR/MainProcess] Process 'ForkPoolWorker-7' pid:53250 exited with 'exitcode 70'
+[2025-07-31 02:24:55,971: ERROR/MainProcess] Process 'ForkPoolWorker-6' pid:53249 exited with 'exitcode 70'
+[2025-07-31 02:24:55,983: ERROR/MainProcess] Process 'ForkPoolWorker-5' pid:53248 exited with 'exitcode 70'
+[2025-07-31 02:24:55,994: ERROR/MainProcess] Process 'ForkPoolWorker-4' pid:53247 exited with 'exitcode 70'
+[2025-07-31 02:24:56,005: ERROR/MainProcess] Process 'ForkPoolWorker-3' pid:53246 exited with 'exitcode 70'
+[2025-07-31 02:24:56,016: ERROR/MainProcess] Process 'ForkPoolWorker-2' pid:53245 exited with 'exitcode 70'
+[2025-07-31 02:24:56,027: ERROR/MainProcess] Process 'ForkPoolWorker-1' pid:53244 exited with 'exitcode 70'

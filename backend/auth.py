@@ -119,3 +119,22 @@ def test_token():
     except Exception as e:
         print(f"PyJWT decode failed: {e}")
         return jsonify({'error': str(e)}), 400
+
+@auth_bp.route('/change-password', methods=['POST'])
+@jwt_required()
+def change_password():
+    data = request.get_json()
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    if not current_password or not new_password:
+        return jsonify({'error': 'Missing current or new password'}), 400
+    user_id = get_jwt_identity()
+    user_id_int = int(user_id) if user_id else None
+    user = User.query.get(user_id_int)
+    if not user or not user.check_password(current_password):
+        return jsonify({'error': 'Current password is incorrect'}), 401
+    if len(new_password) < 6:
+        return jsonify({'error': 'New password must be at least 6 characters'}), 400
+    user.set_password(new_password)
+    db.session.commit()
+    return jsonify({'message': 'Password changed successfully'}), 200

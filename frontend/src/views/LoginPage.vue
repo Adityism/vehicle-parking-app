@@ -35,7 +35,7 @@
             required
             class="form-control form-control-lg"
             :class="{'is-invalid': emailError}"
-            placeholder="e.g., admin@parking.com"
+            placeholder="e.g., person@parking.com"
           />
           <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
         </div>
@@ -127,6 +127,17 @@ export default {
           email: email.value,
           password: password.value
         })
+        // Enforce panel restrictions
+        if (isAdminMode.value && user.role !== 'admin') {
+          error.value = 'Only admins can log in here.'
+          store.commit('logout')
+          return
+        }
+        if (!isAdminMode.value && user.role === 'admin') {
+          error.value = 'Admins cannot log in from the user panel.'
+          store.commit('logout')
+          return
+        }
         // Check if user is admin based on role
         if (user.role === 'admin') {
           router.push('/admin/dashboard')

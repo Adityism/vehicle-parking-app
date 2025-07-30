@@ -7,6 +7,7 @@ import store from './store'
 import axios from 'axios'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
+import rehydrateUser from './store/rehydrateUser'
 
 axios.defaults.baseURL = 'http://localhost:5009/api'
 
@@ -37,7 +38,9 @@ if ('serviceWorker' in navigator) {
   })
 }
 
-const app = createApp(App)
-app.use(router)
-app.use(store)
-app.mount('#app')
+rehydrateUser(store).then(() => {
+  const app = createApp(App)
+  app.use(router)
+  app.use(store)
+  app.mount('#app')
+})

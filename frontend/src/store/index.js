@@ -1,7 +1,19 @@
 import { createStore } from 'vuex'
 import axios from 'axios'
 
-export default createStore({
+async function rehydrateUser(store) {
+  const token = localStorage.getItem('token')
+  if (token && !store.state.user) {
+    try {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      await store.dispatch('getCurrentUser')
+    } catch (e) {
+      store.commit('logout')
+    }
+  }
+}
+
+const store = createStore({
   state: {
     user: null,
     token: localStorage.getItem('token') || null,
@@ -98,3 +110,8 @@ export default createStore({
     activeReservation: state => state.activeReservation
   }
 })
+
+// Call rehydrateUser on store creation
+rehydrateUser(store)
+
+export default store
